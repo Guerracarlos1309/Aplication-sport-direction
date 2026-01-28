@@ -1,0 +1,70 @@
+.finance-module .module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
+.finance-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-card-small {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-card-small .label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.stat-card-small .value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.inventory-item {
+  padding: 16px;
+  text-align: center;
+}
+
+.item-stock {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  display: block;
+  margin: 12px 0;
+}
+
+.payment-status-tag {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.paid {
+  background: rgba(0, 242, 255, 0.1);
+  color: var(--primary);
+}
+.pending {
+  background: rgba(255, 165, 0, 0.1);
+  color: orange;
+}
+.overdue {
+  background: rgba(255, 0, 122, 0.1);
+  color: var(--accent);
+}

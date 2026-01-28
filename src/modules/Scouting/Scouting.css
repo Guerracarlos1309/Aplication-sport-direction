@@ -1,0 +1,78 @@
+.scouting-module .module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
+.shadow-team-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 24px;
+}
+
+.field-view {
+  aspect-ratio: 4 / 3;
+  background: radial-gradient(circle at center, #1a4d1a 0%, #0d260d 100%);
+  border: 4px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.player-node {
+  width: 45px;
+  height: 45px;
+  background: var(--primary);
+  border: 3px solid white;
+  border-radius: 50%;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--background);
+  font-weight: 800;
+  font-size: 0.7rem;
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.scouting-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
+
+.player-photo-placeholder {
+  width: 60px;
+  height: 60px;
+  background: var(--surface);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.score-badge {
+  background: var(--primary);
+  color: var(--background);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.market-trend {
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-up {
+  color: #00ff88;
+}
+.trend-down {
+  color: #ff007a;
+}
