@@ -26,7 +26,8 @@ CREATE TABLE players (
     status VARCHAR(50) DEFAULT 'No Convocado',
     medical_status VARCHAR(255) DEFAULT 'Apto',
     prognosis VARCHAR(100) DEFAULT '-',
-    last_review DATE
+    last_review DATE,
+    callup_acknowledged BOOLEAN DEFAULT FALSE
 );
 
 -- Users Table
@@ -98,3 +99,12 @@ INSERT INTO payments (concept, amount, status, due_date) VALUES
 ('Proveedor Material Nike', 15000, 'paid', '2026-01-15'),
 ('Alquiler Instalaciones', 8500, 'pending', '2026-02-01'),
 ('Seguro Médico Mapfre', 12200, 'overdue', '2026-01-20');
+
+INSERT INTO wellness (player_id, sleep, fatigue, stress, soreness, mood) VALUES
+(1, 4, 3, 2, 3, 4),
+(1, 5, 4, 1, 4, 5),
+(2, 3, 5, 4, 2, 3);
+
+INSERT INTO scouting_objectives (name, rating, position) VALUES
+('Erling Haaland', 95, 'DC'),
+('Vinícius Jr', 92, 'EI');

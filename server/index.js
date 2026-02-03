@@ -290,18 +290,15 @@ app.get("/api/stats/team-progression", async (req, res) => {
     // Get last 4 weeks of averge wellness
     const stats = await Wellness.findAll({
       attributes: [
-        [
-          sequelize.fn("date_trunc", "week", sequelize.col("createdAt")),
-          "week",
-        ],
+        [sequelize.fn("date_trunc", "week", sequelize.col("date")), "week"],
         [sequelize.fn("AVG", sequelize.col("sleep")), "sleep"],
         [sequelize.fn("AVG", sequelize.col("fatigue")), "fatigue"],
         [sequelize.fn("AVG", sequelize.col("stress")), "stress"],
         [sequelize.fn("AVG", sequelize.col("mood")), "mood"],
       ],
-      group: [sequelize.fn("date_trunc", "week", sequelize.col("createdAt"))],
+      group: [sequelize.fn("date_trunc", "week", sequelize.col("date"))],
       order: [
-        [sequelize.fn("date_trunc", "week", sequelize.col("createdAt")), "ASC"],
+        [sequelize.fn("date_trunc", "week", sequelize.col("date")), "ASC"],
       ],
       limit: 5,
     });
@@ -309,12 +306,12 @@ app.get("/api/stats/team-progression", async (req, res) => {
     const formatted = stats.map((s, index) => ({
       name: `Sem ${index + 1}`,
       rendimiento: Math.round(
-        ((parseInt(s.dataValues.sleep) + parseInt(s.dataValues.mood)) / 10) *
+        ((parseFloat(s.dataValues.sleep) + parseFloat(s.dataValues.mood)) /
+          10) *
           100,
       ),
       fisico: Math.round(
-        ((parseInt(s.dataValues.fatigue) +
-          (6 - parseInt(s.dataValues.stress))) /
+        ((parseFloat(s.dataValues.fatigue) + parseFloat(s.dataValues.stress)) /
           10) *
           100,
       ),
