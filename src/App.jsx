@@ -17,6 +17,8 @@ import PlayerProfile from "./modules/Player/PlayerProfile";
 import PlayerDashboard from "./modules/Player/PlayerDashboard";
 import LoginPage from "./pages/LoginPage";
 import PerformanceLab from "./modules/Performance/PerformanceLab";
+import Settings from "./modules/Settings/Settings";
+import OpponentScouting from "./modules/OpponentScouting/OpponentScouting";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -79,15 +81,6 @@ function AppRoutes() {
         />
 
         <Route
-          path="finance"
-          element={
-            <ProtectedRoute allowedRoles={["DT"]}>
-              <FinanceDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
           path="scouting"
           element={
             <ProtectedRoute allowedRoles={["DT"]}>
@@ -127,6 +120,22 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={["DT", "Jugador"]}>
               <PerformanceLab />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute allowedRoles={["DT"]}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="opponent-scouting"
+          element={
+            <ProtectedRoute allowedRoles={["DT"]}>
+              <OpponentScouting />
             </ProtectedRoute>
           }
         />

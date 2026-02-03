@@ -40,10 +40,12 @@ const PlayerWellness = () => {
     },
   ];
 
+  const API_BASE = "http://localhost:5000/api";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/wellness", {
+      const res = await fetch(`${API_BASE}/wellness`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

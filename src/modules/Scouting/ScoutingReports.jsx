@@ -1,26 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const ScoutingReports = () => {
   const [filter, setFilter] = useState("");
+  const [allReports, setAllReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const allReports = [
-    { name: "Khvicha K.", age: 24, pos: "EI", club: "Napoli", rating: 8.5 },
-    {
-      name: "Florian Wirtz",
-      age: 22,
-      pos: "MCO",
-      club: "Bayer L.",
-      rating: 9.0,
-    },
-    { name: "Lamine Yamal", age: 18, pos: "ED", club: "FCB", rating: 9.5 },
-    { name: "J. Musiala", age: 22, pos: "MCO", club: "Bayern", rating: 9.2 },
-    { name: "R. Leao", age: 25, pos: "EI", club: "Milan", rating: 8.8 },
-  ];
+  const API_BASE = "http://localhost:5000/api";
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
+
+  const fetchReports = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/scouting/reports`);
+      const data = await res.json();
+      setAllReports(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching scouting reports:", err);
+      setLoading(false);
+    }
+  };
 
   const filteredReports = allReports.filter(
     (r) =>
       r.name.toLowerCase().includes(filter.toLowerCase()) ||
-      r.pos.toLowerCase().includes(filter.toLowerCase()),
+      r.position.toLowerCase().includes(filter.toLowerCase()),
   );
 
   return (
@@ -50,47 +56,51 @@ const ScoutingReports = () => {
         />
       </div>
 
-      <div className="grid">
-        {filteredReports.map((r, i) => (
-          <div key={i} className="glass-panel scouting-card card">
-            <div className="player-photo-placeholder">👤</div>
-            <div style={{ flexGrow: 1 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <h4>{r.name}</h4>
-                <span className="score-badge">{r.rating}</span>
-              </div>
-              <p style={{ fontSize: "0.8rem", margin: "4px 0" }}>
-                {r.pos} | {r.age} años | {r.club}
-              </p>
-              <div style={{ display: "flex", gap: "4px", marginTop: "8px" }}>
-                <span
-                  className="payment-status-tag paid"
-                  style={{ fontSize: "0.6rem" }}
+      {loading ? (
+        <p style={{ textAlign: "center" }}>Cargando reportes...</p>
+      ) : (
+        <div className="grid">
+          {filteredReports.map((r) => (
+            <div key={r.id} className="glass-panel scouting-card card">
+              <div className="player-photo-placeholder">👤</div>
+              <div style={{ flexGrow: 1 }}>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
                 >
-                  Velocidad
-                </span>
-                <span
-                  className="payment-status-tag paid"
-                  style={{ fontSize: "0.6rem" }}
-                >
-                  Regate
-                </span>
+                  <h4>{r.name}</h4>
+                  <span className="score-badge">{r.rating}</span>
+                </div>
+                <p style={{ fontSize: "0.8rem", margin: "4px 0" }}>
+                  {r.position} | {r.age} años | {r.club}
+                </p>
+                <div style={{ display: "flex", gap: "4px", marginTop: "8px" }}>
+                  {r.strengths &&
+                    r.strengths.slice(0, 2).map((strength, idx) => (
+                      <span
+                        key={idx}
+                        className="payment-status-tag paid"
+                        style={{ fontSize: "0.6rem" }}
+                      >
+                        {strength}
+                      </span>
+                    ))}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        {filteredReports.length === 0 && (
-          <p
-            style={{
-              textAlign: "center",
-              gridColumn: "1/-1",
-              color: "var(--text-muted)",
-            }}
-          >
-            No se encontraron informes.
-          </p>
-        )}
-      </div>
+          ))}
+          {filteredReports.length === 0 && (
+            <p
+              style={{
+                textAlign: "center",
+                gridColumn: "1/-1",
+                color: "var(--text-muted)",
+              }}
+            >
+              No se encontraron informes.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

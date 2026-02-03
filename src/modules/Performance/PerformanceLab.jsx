@@ -8,9 +8,12 @@ import {
   Trophy,
   Activity,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import "./PerformanceLab.css";
 
 const PerformanceLab = () => {
+  const API_BASE = "http://localhost:5000/api";
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState({
     sleep: 8,
     hydration: 75,
@@ -19,17 +22,48 @@ const PerformanceLab = () => {
   });
 
   const [rankings, setRankings] = useState([]);
+  const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchRankings();
-  }, []);
+    fetchInsights();
+    if (user?.player_id) {
+      fetchUserMetrics();
+    }
+  }, [user]);
+
+  const fetchUserMetrics = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/wellness/${user.player_id}`);
+      const data = await response.json();
+      if (data.length > 0) {
+        const last = data[0];
+        setMetrics({
+          sleep: last.sleep,
+          hydration: 70 + last.mood * 3, // Derived mock
+          stress: last.stress * 10,
+          nutrition: 85 + (last.fatigue < 5 ? 10 : 0),
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user metrics:", error);
+    }
+  };
+
+  const fetchInsights = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/performance-insights`);
+      const data = await response.json();
+      setInsights(data);
+    } catch (error) {
+      console.error("Error fetching insights:", error);
+    }
+  };
 
   const fetchRankings = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/performance-rankings",
-      );
+      const response = await fetch(`${API_BASE}/performance-rankings`);
       const data = await response.json();
       setRankings(data);
     } catch (error) {
@@ -106,11 +140,24 @@ const PerformanceLab = () => {
           <div className="insight-content">
             <div className="insight-badge">Recomendación</div>
             <p>
-              "Tus niveles de recuperación son óptimos hoy. Los datos sugieren
-              que puedes aumentar la carga de entrenamiento un 15% sin riesgo de
-              lesión."
+              {insights.find((i) => i.type === "recommendation")?.content ||
+                "Tus niveles de recuperación son óptimos hoy."}
             </p>
             <button className="glow-btn btn-sm">Ver Plan Detallado</button>
+          </div>
+        </div>
+
+        {/* Nutrition Tip */}
+        <div className="glass-panel nutrition-tip">
+          <div className="tip-icon">
+            <Coffee size={24} />
+          </div>
+          <div className="tip-text">
+            <h4>Nutrición Pre-Partido</h4>
+            <p>
+              {insights.find((i) => i.type === "nutrition")?.content ||
+                "Maximiza tus reservas de glucógeno con carbohidratos complejos."}
+            </p>
           </div>
         </div>
 
@@ -134,20 +181,6 @@ const PerformanceLab = () => {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Nutrition Tip */}
-        <div className="glass-panel nutrition-tip">
-          <div className="tip-icon">
-            <Coffee size={24} />
-          </div>
-          <div className="tip-text">
-            <h4>Nutrición Pre-Partido</h4>
-            <p>
-              Consumir carbohidratos complejos 3 horas antes del inicio para
-              maximizar reservas de glucógeno.
-            </p>
           </div>
         </div>
       </div>

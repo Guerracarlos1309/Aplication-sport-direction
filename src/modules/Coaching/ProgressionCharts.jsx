@@ -10,20 +10,33 @@ import {
 } from "recharts";
 
 const ProgressionCharts = () => {
+  const API_BASE = "http://localhost:5000/api";
   const [progressionData, setProgressionData] = React.useState([]);
+  const [insights, setInsights] = React.useState({
+    leaderboard: [],
+    alerts: [],
+  });
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetch("http://localhost:5000/api/stats/team-progression")
-      .then((res) => res.json())
-      .then((data) => {
-        setProgressionData(data);
+    const fetchData = async () => {
+      try {
+        const [progRes, insightRes] = await Promise.all([
+          fetch(`${API_BASE}/stats/team-progression`),
+          fetch(`${API_BASE}/stats/coaching-insights`),
+        ]);
+        const progData = await progRes.json();
+        const insightData = await insightRes.json();
+
+        setProgressionData(progData);
+        setInsights(insightData);
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching progression:", err);
+      } catch (err) {
+        console.error("Error fetching progression data:", err);
         setLoading(false);
-      });
+      }
+    };
+    fetchData();
   }, []);
 
   if (loading) return <div>Cargando tendencias...</div>;
@@ -76,27 +89,37 @@ const ProgressionCharts = () => {
         <div className="glass-panel card">
           <h4>Top Rendimiento esta Semana</h4>
           <div className="player-list" style={{ marginTop: "16px" }}>
-            <div className="player-row">
-              <span>1. Carlos Ruiz</span>{" "}
-              <span style={{ color: "#00f2ff" }}>9.2</span>
-            </div>
-            <div className="player-row">
-              <span>2. Luca Modri</span>{" "}
-              <span style={{ color: "#00f2ff" }}>8.8</span>
-            </div>
-            <div className="player-row">
-              <span>3. Marcos Silva</span>{" "}
-              <span style={{ color: "#00f2ff" }}>8.5</span>
-            </div>
+            {insights.leaderboard.map((p, i) => (
+              <div key={i} className="player-row">
+                <span>
+                  {i + 1}. {p.name}
+                </span>{" "}
+                <span style={{ color: "#00f2ff" }}>{p.score}</span>
+              </div>
+            ))}
           </div>
         </div>
         <div className="glass-panel card">
           <h4>Alertas de Progresión</h4>
-          <p
-            style={{ marginTop: "16px", fontSize: "0.9rem", color: "#ff6b6b" }}
-          >
-            ⚠️ Caída de rendimiento físico en Rakit detectada.
-          </p>
+          <div style={{ marginTop: "16px" }}>
+            {insights.alerts.map((alert, i) => (
+              <p
+                key={i}
+                style={{
+                  fontSize: "0.9rem",
+                  color: alert.color,
+                  marginBottom: "8px",
+                }}
+              >
+                {alert.message}
+              </p>
+            ))}
+            {insights.alerts.length === 0 && (
+              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)" }}>
+                No hay alertas activas.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

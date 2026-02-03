@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu, X, Bell, Check, Info, AlertTriangle } from "lucide-react";
 import Sidebar from "./Sidebar";
@@ -7,44 +7,61 @@ import "./Layout.css";
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Nuevo Informe Médico",
-      description: "El jugador Carlos G. tiene un nuevo informe.",
-      type: "info",
-      time: "Hace 5 min",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Próximo Entrenamiento",
-      description: "Mañana a las 08:00 AM en el campo principal.",
-      type: "warning",
-      time: "Hace 2h",
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Cuerpos Técnicos",
-      description: "Se ha actualizado la lista de convocados.",
-      type: "success",
-      time: "Hace 5h",
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const API_BASE = "http://localhost:5000/api";
+
+  useEffect(() => {
+    fetchNotifications();
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/settings`);
+      const data = await res.json();
+      setSettings(data);
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications`);
+      const data = await res.json();
+      setNotifications(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      setLoading(false);
+    }
+  };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      await fetch(`${API_BASE}/notifications/read-all`, { method: "PUT" });
+      setNotifications(notifications.map((n) => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Error marking all as read:", err);
+    }
   };
 
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+  const markAsRead = async (id) => {
+    try {
+      const res = await fetch(`${API_BASE}/notifications/${id}/read`, {
+        method: "PUT",
+      });
+      const updated = await res.json();
+      setNotifications(notifications.map((n) => (n.id === id ? updated : n)));
+    } catch (err) {
+      console.error("Error marking notification as read:", err);
+    }
   };
 
   return (
@@ -82,7 +99,9 @@ const Layout = () => {
                     </button>
                   </div>
                   <div className="notif-list">
-                    {notifications.length > 0 ? (
+                    {loading ? (
+                      <div className="notif-empty">Cargando...</div>
+                    ) : notifications.length > 0 ? (
                       notifications.map((n) => (
                         <div
                           key={n.id}
@@ -92,6 +111,8 @@ const Layout = () => {
                           <div className={`notif-icon ${n.type}`}>
                             {n.type === "warning" ? (
                               <AlertTriangle size={14} />
+                            ) : n.type === "danger" ? (
+                              <AlertTriangle size={14} />
                             ) : (
                               <Info size={14} />
                             )}
@@ -99,7 +120,12 @@ const Layout = () => {
                           <div className="notif-content">
                             <p className="notif-title">{n.title}</p>
                             <p className="notif-desc">{n.description}</p>
-                            <span className="notif-time">{n.time}</span>
+                            <span className="notif-time">
+                              {new Date(n.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
                           </div>
                           {!n.read && <div className="unread-dot"></div>}
                         </div>

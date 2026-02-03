@@ -13,6 +13,15 @@ import Wellness from "./models/Wellness.js";
 import Payment from "./models/Payment.js";
 import Inventory from "./models/Inventory.js";
 import ScoutingObjective from "./models/ScoutingObjective.js";
+import Notification from "./models/Notification.js";
+import Settings from "./models/Settings.js";
+import Match from "./models/Match.js";
+import Contract from "./models/Contract.js";
+import Opponent from "./models/Opponent.js";
+import PerformanceInsight from "./models/PerformanceInsight.js";
+import ScoutingReport from "./models/ScoutingReport.js";
+import MarketValue from "./models/MarketValue.js";
+import RehabilitationExercise from "./models/RehabilitationExercise.js";
 
 dotenv.config();
 
@@ -378,13 +387,312 @@ app.get("/api/dashboard-summary", async (req, res) => {
   }
 });
 
+// 7. Notifications
+app.get("/api/notifications", async (req, res) => {
+  try {
+    const notifications = await Notification.findAll({
+      order: [["createdAt", "DESC"]],
+      limit: 20,
+    });
+    res.json(notifications);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/notifications", async (req, res) => {
+  try {
+    const notification = await Notification.create(req.body);
+    res.json(notification);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/notifications/read-all", async (req, res) => {
+  try {
+    await Notification.update({ read: true }, { where: { read: false } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/notifications/:id/read", async (req, res) => {
+  try {
+    await Notification.update({ read: true }, { where: { id: req.params.id } });
+    const updated = await Notification.findByPk(req.params.id);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 8. Global Settings
+app.get("/api/settings", async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create({});
+    }
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/settings", async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = await Settings.create(req.body);
+    } else {
+      await settings.update(req.body);
+    }
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 9. Matches
+app.get("/api/matches/latest", async (req, res) => {
+  try {
+    const match = await Match.findOne({ order: [["date", "DESC"]] });
+    res.json(
+      match || {
+        opponent: "Sin datos",
+        score: "0-0",
+        possession: "50%",
+        shots: 0,
+        passing: "0%",
+        analysis_points: "No hay registros disponibles.",
+      },
+    );
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 10. Contracts
+app.get("/api/contracts", async (req, res) => {
+  try {
+    const contracts = await Contract.findAll({ order: [["end_date", "ASC"]] });
+    res.json(contracts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 12. Opponents (Scouting Inteligencia)
+app.get("/api/opponents", async (req, res) => {
+  try {
+    const opponents = await Opponent.findAll({
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(opponents);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/opponents", async (req, res) => {
+  try {
+    const opponent = await Opponent.create(req.body);
+    res.json(opponent);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/opponents/:id", async (req, res) => {
+  try {
+    await Opponent.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Opponent deleted" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 13. Performance Insights
+app.get("/api/performance-insights", async (req, res) => {
+  try {
+    const insights = await PerformanceInsight.findAll({
+      where: { active: true },
+    });
+    res.json(insights);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 11. Aggregate Stats
+app.get("/api/stats/load-stats", async (req, res) => {
+  try {
+    const players = await Player.findAll({
+      include: [{ model: Wellness, limit: 1, order: [["date", "DESC"]] }],
+    });
+
+    const data = players.map((p) => {
+      const lastWellness = p.Wellnesses?.[0];
+      // Mock load calculation: fatigue + stress + soreness normalized
+      const loadValue = lastWellness
+        ? lastWellness.fatigue * 50 +
+          lastWellness.stress * 30 +
+          lastWellness.soreness * 20
+        : Math.floor(Math.random() * 900); // Fallback for demo
+
+      return {
+        player: p.name.split(" ")[0],
+        load: loadValue,
+        limit: 900,
+      };
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/stats/coaching-insights", async (req, res) => {
+  try {
+    const players = await Player.findAll();
+    // In a real app, this would be complex SQL or AI logic
+    // Mocking leaderboard and alerts based on available data
+    const insights = {
+      leaderboard: players.slice(0, 3).map((p, i) => ({
+        name: p.name,
+        score: (9.5 - i * 0.4).toFixed(1),
+      })),
+      alerts: [
+        {
+          message: "⚠️ Fatiga muscular detectada en Luca Modric.",
+          color: "#ff6b6b",
+        },
+      ],
+    };
+    res.json(insights);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 14. Scouting Reports
+app.get("/api/scouting/reports", async (req, res) => {
+  try {
+    const reports = await ScoutingReport.findAll({
+      order: [["rating", "DESC"]],
+    });
+    res.json(reports);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/scouting/reports", async (req, res) => {
+  try {
+    const report = await ScoutingReport.create(req.body);
+    res.json(report);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/scouting/reports/:id", async (req, res) => {
+  try {
+    await ScoutingReport.destroy({ where: { id: req.params.id } });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 15. Market Values
+app.get("/api/market-values", async (req, res) => {
+  try {
+    const values = await MarketValue.findAll({
+      include: [{ model: Player, attributes: ["name"] }],
+      order: [["last_updated", "DESC"]],
+    });
+    res.json(values);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 16. Rehabilitation Exercises
+app.get("/api/rehabilitation/exercises", async (req, res) => {
+  try {
+    const exercises = await RehabilitationExercise.findAll({
+      include: [{ model: Player, attributes: ["name"] }],
+      order: [
+        ["date", "DESC"],
+        ["phase", "ASC"],
+      ],
+    });
+    res.json(exercises);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/rehabilitation/exercises", async (req, res) => {
+  try {
+    const exercise = await RehabilitationExercise.create(req.body);
+    res.json(exercise);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/rehabilitation/exercises/:id", async (req, res) => {
+  try {
+    await RehabilitationExercise.update(req.body, {
+      where: { id: req.params.id },
+    });
+    const updated = await RehabilitationExercise.findByPk(req.params.id);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 17. Wellness Summary (for all players)
+app.get("/api/wellness-summary", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const wellnessRecords = await Wellness.findAll({
+      where: { date: today },
+      include: [{ model: Player, attributes: ["name"] }],
+    });
+
+    const summary = wellnessRecords.map((w) => {
+      const data = w.toJSON();
+      return {
+        player_id: data.player_id,
+        name: data.Player ? data.Player.name : "Unknown",
+        sleep: data.sleep,
+        fatigue: data.fatigue,
+        stress: data.stress,
+        soreness: data.soreness,
+        mood: data.mood,
+      };
+    });
+
+    res.json(summary);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Database Connection and Server Start
 const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connected successfully.");
 
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log("Models synchronized.");
 
     app.listen(PORT, () => {

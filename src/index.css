@@ -153,6 +153,18 @@ h3 {
   background: var(--surface);
   border-radius: 12px;
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
 }
 
 /* Global Input Styles */
@@ -197,14 +209,23 @@ input:-webkit-autofill:active {
 
 /* Tab Navigation Styles */
 .tab-navigation,
-.tabs-container {
+.tabs-container,
+.tab-navigation {
   display: flex;
   gap: 8px;
   padding: 6px;
   background: var(--surface);
   border-radius: 12px;
   border: 1px solid var(--border);
-  flex-wrap: wrap; /* responsive */
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-container::-webkit-scrollbar,
+.tab-navigation::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -237,4 +258,19 @@ option {
   background-color: #0d0d15;
   color: var(--text);
   padding: 10px;
+}
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+.show-mobile {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .show-mobile {
+    display: block;
+  }
 }

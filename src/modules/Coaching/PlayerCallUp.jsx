@@ -67,11 +67,6 @@ const PlayerCallUp = () => {
           }}
         >
           <h3>Convocatoria: Tiempo Real</h3>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              Sincronizado con PostgreSQL
-            </span>
-          </div>
         </div>
 
         {loading ? (

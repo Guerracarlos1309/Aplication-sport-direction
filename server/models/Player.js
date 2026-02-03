@@ -37,6 +37,50 @@ const Player = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    dni: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    birth_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+    },
+    nationality: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    height: {
+      type: DataTypes.DECIMAL(5, 2),
+      allowNull: true,
+    },
+    weight: {
+      type: DataTypes.DECIMAL(5, 2),
+      allowNull: true,
+    },
+    preferred_foot: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+    },
+    jersey_number: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    category: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    phone: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    email: {
+      type: DataTypes.STRING(150),
+      allowNull: true,
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
   },
   {
     tableName: "players",

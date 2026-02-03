@@ -16,12 +16,21 @@ import PlayerWellness from "../Health/PlayerWellness";
 import "./PlayerDashboard.css";
 
 const PlayerDashboard = () => {
+  const API_BASE = "http://localhost:5000/api";
   const { user } = useAuth();
   const [activeModule, setActiveModule] = useState("overview");
   const [nextTraining, setNextTraining] = useState(null);
   const [latestWellness, setLatestWellness] = useState(null);
   const [playerData, setPlayerData] = useState(null);
+  const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [nextMatch, setNextMatch] = useState({
+    opponent: "-",
+    date: "-",
+    time: "-",
+    venue: "-",
+    type: "-",
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -29,21 +38,36 @@ const PlayerDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const sRes = await fetch("http://localhost:5000/api/sessions");
+      const [sRes, mRes, iRes] = await Promise.all([
+        fetch(`${API_BASE}/sessions`),
+        fetch(`${API_BASE}/matches/latest`),
+        fetch(`${API_BASE}/performance-insights`),
+      ]);
+
       const sessions = await sRes.json();
       if (sessions.length > 0) setNextTraining(sessions[0]);
 
+      const insightsData = await iRes.json();
+      setInsights(insightsData);
+
+      const match = await mRes.json();
+      if (match) {
+        setNextMatch({
+          opponent: match.opponent,
+          date: new Date(match.date).toLocaleDateString(),
+          time: match.time || "20:00",
+          venue: match.venue || "Campo Rival",
+          type: match.match_type || "Oficial",
+        });
+      }
+
       if (user?.player_id) {
-        // Fetch specific player data for status/acknowledgement
-        const pRes = await fetch(
-          `http://localhost:5000/api/players/${user.player_id}`,
-        );
+        // ... rest of user-specific fetch ...
+        const pRes = await fetch(`${API_BASE}/players/${user.player_id}`);
         const pData = await pRes.json();
         setPlayerData(pData);
 
-        const wRes = await fetch(
-          `http://localhost:5000/api/wellness/${user.player_id}`,
-        );
+        const wRes = await fetch(`${API_BASE}/wellness/${user.player_id}`);
         const wellness = await wRes.json();
         if (wellness.length > 0) setLatestWellness(wellness[0]);
       }
@@ -56,14 +80,11 @@ const PlayerDashboard = () => {
 
   const handleAcknowledgement = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/players/${user.player_id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ callup_acknowledged: true }),
-        },
-      );
+      const res = await fetch(`${API_BASE}/players/${user.player_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callup_acknowledged: true }),
+      });
       if (res.ok) {
         const updated = await res.json();
         setPlayerData(updated);
@@ -71,14 +92,6 @@ const PlayerDashboard = () => {
     } catch (err) {
       console.error("Error acknowledging callup:", err);
     }
-  };
-
-  const nextMatch = {
-    opponent: "Real Madrid CF",
-    date: "Sab, 7 Feb",
-    time: "20:00",
-    venue: "Estadio Santiago Bernabéu",
-    type: "Liga",
   };
 
   return (
@@ -163,7 +176,8 @@ const PlayerDashboard = () => {
                     className="training-footer"
                     style={{ marginTop: "10px", padding: "0" }}
                   >
-                    <MapPin size={14} /> Campo Principal
+                    <MapPin size={14} />{" "}
+                    {nextTraining.location || "Campo Principal"}
                   </div>
                 </div>
               ) : (
@@ -196,7 +210,11 @@ const PlayerDashboard = () => {
                 )}
                 <div className="tip-item">
                   <TrendingUp size={16} color="var(--primary)" />
-                  <p>Mantén la consistencia en el "Entrenamiento Invisible".</p>
+                  <p>
+                    {insights.find((i) => i.type === "recommendation")
+                      ?.content ||
+                      "Mantén la consistencia en el Entrenamiento Invisible."}
+                  </p>
                 </div>
               </div>
             </div>

@@ -97,13 +97,13 @@ const TrainingPlanner = () => {
             ></textarea>
           </div>
           <button type="submit" className="glow-btn">
-            Guardar en Base de Datos
+            Guardar
           </button>
         </form>
       </div>
 
       <div className="glass-panel card">
-        <h3>Próximas Sesiones (Desde el Servidor)</h3>
+        <h3>Próximas Sesiones</h3>
         {loading ? (
           <p>Cargando sesiones...</p>
         ) : (

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./PlayerProfile.css";
 
 const PlayerProfile = () => {
+  const API_BASE = "http://localhost:5000/api";
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
@@ -19,14 +20,11 @@ const PlayerProfile = () => {
 
   const handlePasswordChange = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/users/change-password",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: user.id, newPassword: newPass }),
-        },
-      );
+      const response = await fetch(`${API_BASE}/users/change-password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, newPassword: newPass }),
+      });
       if (response.ok) {
         setMessage({
           type: "success",
@@ -47,9 +45,7 @@ const PlayerProfile = () => {
 
   const fetchPlayerData = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/players/${user.player_id}`,
-      );
+      const response = await fetch(`${API_BASE}/players/${user.player_id}`);
       if (!response.ok) throw new Error("Error al cargar datos");
       const data = await response.json();
       setFormData(data);

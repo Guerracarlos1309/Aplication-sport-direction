@@ -10,15 +10,28 @@ import {
   Cell,
 } from "recharts";
 
-const data = [
-  { player: "Ruiz", load: 850, limit: 900 },
-  { player: "Silva", load: 720, limit: 900 },
-  { player: "Rakit", load: 950, limit: 900 },
-  { player: "Modri", load: 600, limit: 900 },
-  { player: "Benz", load: 200, limit: 900 },
-];
-
 const LoadControl = () => {
+  const [loadData, setLoadData] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch("http://localhost:5000/api/stats/load-stats")
+      .then((res) => res.json())
+      .then((data) => {
+        setLoadData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching load stats:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const riskyPlayers = loadData.filter((p) => p.load > p.limit);
+  const recoveringPlayers = loadData.filter((p) => p.load < 300);
+  const optimalPlayers = loadData.filter(
+    (p) => p.load >= 300 && p.load <= p.limit,
+  );
   return (
     <div className="load-control">
       <div className="glass-panel card">
@@ -28,7 +41,7 @@ const LoadControl = () => {
         <div className="load-chart-container">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={data}
+              data={loadData}
               margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
             >
               <CartesianGrid
@@ -47,7 +60,7 @@ const LoadControl = () => {
                 }}
               />
               <Bar dataKey="load">
-                {data.map((entry, index) => (
+                {loadData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.load > entry.limit ? "#ff007a" : "#00f2ff"}
@@ -62,15 +75,27 @@ const LoadControl = () => {
       <div className="match-stats" style={{ marginTop: "24px" }}>
         <div className="glass-panel card" style={{ minHeight: "auto" }}>
           <h4 style={{ color: "#ff007a" }}>Riesgo Alto</h4>
-          <p>Ivan Rakitic (Carga excedida)</p>
+          <p>
+            {riskyPlayers.length > 0
+              ? riskyPlayers.map((p) => p.player).join(", ")
+              : "Ninguno"}
+          </p>
         </div>
         <div className="glass-panel card" style={{ minHeight: "auto" }}>
           <h4>Estado Óptimo</h4>
-          <p>Marcos Silva</p>
+          <p>
+            {optimalPlayers.length > 0
+              ? optimalPlayers.map((p) => p.player).join(", ")
+              : "Ninguno"}
+          </p>
         </div>
         <div className="glass-panel card" style={{ minHeight: "auto" }}>
           <h4 style={{ color: "var(--text-muted)" }}>En Recuperación</h4>
-          <p>K. Benzema</p>
+          <p>
+            {recoveringPlayers.length > 0
+              ? recoveringPlayers.map((p) => p.player).join(", ")
+              : "Ninguno"}
+          </p>
         </div>
       </div>
     </div>

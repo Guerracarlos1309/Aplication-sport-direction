@@ -1,9 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { Users, Search, Loader2, Plus, UserPlus } from "lucide-react";
+import {
+  Users,
+  Search,
+  Loader2,
+  Plus,
+  UserPlus,
+  Trash2,
+  Power,
+  PowerOff,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Calendar,
+  Fingerprint,
+  Flag,
+  Ruler,
+  Weight,
+  Footprints,
+  Hash,
+  Layers,
+} from "lucide-react";
 import Modal from "../../components/common/Modal";
 import "./PlayerManagement.css";
+import { useState, useEffect } from "react";
 
 const PlayerManagement = () => {
+  const API_BASE = "http://localhost:5000/api";
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,10 +32,22 @@ const PlayerManagement = () => {
   const [newPlayer, setNewPlayer] = useState({
     name: "",
     position: "POR",
-    status: "Convocado",
+    status: "No Convocado",
     medical_status: "Apto",
+    dni: "",
+    birth_date: "",
+    nationality: "",
+    height: "",
+    weight: "",
+    preferred_foot: "Derecho",
+    jersey_number: "",
+    category: "",
+    phone: "",
+    email: "",
   });
   const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     fetchPlayers();
@@ -22,7 +55,7 @@ const PlayerManagement = () => {
 
   const fetchPlayers = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/players");
+      const response = await fetch(`${API_BASE}/players`);
       const data = await response.json();
       setPlayers(data);
     } catch (error) {
@@ -36,9 +69,7 @@ const PlayerManagement = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      // Create a mock ID if backend logic is simple, or let backend handle it
-      // Standard POST
-      const response = await fetch("http://localhost:5000/api/players", {
+      const response = await fetch(`${API_BASE}/players`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,19 +84,65 @@ const PlayerManagement = () => {
         setNewPlayer({
           name: "",
           position: "POR",
-          status: "Convocado",
+          status: "No Convocado",
           medical_status: "Apto",
+          dni: "",
+          birth_date: "",
+          nationality: "",
+          height: "",
+          weight: "",
+          preferred_foot: "Derecho",
+          jersey_number: "",
+          category: "",
+          phone: "",
+          email: "",
         });
-      } else {
-        // Fallback for visual demo if API endpoint doesn't support POST yet
-        const mockPlayer = { ...newPlayer, id: players.length + 1 };
-        setPlayers([...players, mockPlayer]);
-        setIsModalOpen(false);
       }
     } catch (error) {
       console.error("Error adding player:", error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleActive = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/players/${id}/toggle-active`,
+        {
+          method: "PATCH",
+        },
+      );
+      if (response.ok) {
+        const updatedPlayer = await response.json();
+        setPlayers(players.map((p) => (p.id === id ? updatedPlayer : p)));
+      }
+    } catch (error) {
+      console.error("Error toggling active status:", error);
+    }
+  };
+
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeletePlayer = async () => {
+    if (!deleteId) return;
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/players/${deleteId}`,
+        {
+          method: "DELETE",
+        },
+      );
+      if (response.ok) {
+        setPlayers(players.filter((p) => p.id !== deleteId));
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+      }
+    } catch (error) {
+      console.error("Error deleting player:", error);
     }
   };
 
@@ -87,6 +164,7 @@ const PlayerManagement = () => {
         </div>
         <button
           className="glow-btn add-player-btn"
+          style={{ cursor: "pointer" }}
           onClick={() => setIsModalOpen(true)}
         >
           <Plus size={20} />
@@ -109,84 +187,213 @@ const PlayerManagement = () => {
           <Loader2 className="animate-spin" size={40} color="var(--accent)" />
         </div>
       ) : (
-        <div className="table-container glass-panel">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre del Jugador</th>
-                <th>Posición</th>
-                <th>Estado Actual</th>
-                <th>Condición Médica</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPlayers.length > 0 ? (
-                filteredPlayers.map((player) => (
-                  <tr key={player.id}>
-                    <td style={{ color: "var(--text-muted)" }}>#{player.id}</td>
-                    <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                        }}
-                      >
+        <>
+          <div className="table-container header-glass-special hide-mobile">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre del Jugador</th>
+                  <th>Posición</th>
+                  <th>Dorsal</th>
+                  <th>Estado</th>
+                  <th>Activo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPlayers.length > 0 ? (
+                  filteredPlayers.map((player) => (
+                    <tr
+                      key={player.id}
+                      className={!player.active ? "row-inactive" : ""}
+                    >
+                      <td>#{player.id}</td>
+                      <td>
                         <div
                           style={{
-                            width: "32px",
-                            height: "32px",
-                            background: "rgba(255,255,255,0.1)",
-                            borderRadius: "50%",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "0.8rem",
-                            fontWeight: "bold",
+                            gap: "10px",
                           }}
                         >
-                          {player.name.charAt(0)}
+                          <div
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              background: "rgba(255,255,255,0.1)",
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "0.8rem",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {player.name.charAt(0)}
+                          </div>
+                          <span style={{ fontWeight: 600 }}>{player.name}</span>
                         </div>
-                        <span style={{ fontWeight: 600 }}>{player.name}</span>
+                      </td>
+                      <td>
+                        <span className="position-badge">
+                          {player.position}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="jersey-badge">
+                          {player.jersey_number || "-"}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`status-badge ${
+                            player.status === "Lesionado"
+                              ? "status-danger"
+                              : player.status === "No Convocado"
+                                ? "status-warning"
+                                : "status-success"
+                          }`}
+                        >
+                          {player.status}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`active-indicator ${player.active ? "active" : "inactive"}`}
+                        >
+                          {player.active ? "SÍ" : "NO"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="action-buttons">
+                          <button
+                            className={`action-btn ${player.active ? "deactivate" : "activate"}`}
+                            onClick={() => handleToggleActive(player.id)}
+                            title={player.active ? "Desactivar" : "Activar"}
+                          >
+                            {player.active ? (
+                              <PowerOff size={16} />
+                            ) : (
+                              <Power size={16} />
+                            )}
+                          </button>
+                          <button
+                            className="action-btn delete"
+                            onClick={() => confirmDelete(player.id)}
+                            title="Eliminar"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      style={{
+                        textAlign: "center",
+                        padding: "3rem",
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      No se encontraron jugadores que coincidan con la búsqueda.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="mobile-cards show-mobile">
+            {filteredPlayers.length > 0 ? (
+              filteredPlayers.map((player) => (
+                <div
+                  key={player.id}
+                  className={`player-card-mobile glass-panel ${!player.active ? "row-inactive" : ""}`}
+                >
+                  <div className="card-header">
+                    <div className="player-info">
+                      <div className="player-avatar">
+                        {player.name.charAt(0)}
                       </div>
-                    </td>
-                    <td>
+                      <div>
+                        <h3>{player.name}</h3>
+                        <span className="player-id">#{player.id}</span>
+                      </div>
+                    </div>
+                    <div className="active-status">
+                      <span
+                        className={`active-indicator ${player.active ? "active" : "inactive"}`}
+                      >
+                        {player.active ? "ACTIVO" : "INACTIVO"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="card-details">
+                    <div className="detail-item">
+                      <span className="label">Posición</span>
                       <span className="position-badge">{player.position}</span>
-                    </td>
-                    <td>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Dorsal</span>
+                      <span className="jersey-badge">
+                        {player.jersey_number || "-"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="label">Estado</span>
                       <span
                         className={`status-badge ${
                           player.status === "Lesionado"
                             ? "status-danger"
-                            : "status-success"
+                            : player.status === "No Convocado"
+                              ? "status-warning"
+                              : "status-success"
                         }`}
                       >
                         {player.status}
                       </span>
-                    </td>
-                    <td style={{ color: "var(--text-muted)" }}>
-                      {player.medical_status}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="5"
-                    style={{
-                      textAlign: "center",
-                      padding: "3rem",
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    No se encontraron jugadores que coincidan con la búsqueda.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
+                    <button
+                      className={`glow-btn ${player.active ? "btn-deactivate" : "btn-activate"}`}
+                      onClick={() => handleToggleActive(player.id)}
+                    >
+                      {player.active ? (
+                        <>
+                          <PowerOff size={16} /> Desactivar
+                        </>
+                      ) : (
+                        <>
+                          <Power size={16} /> Activar
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="glow-btn btn-delete"
+                      onClick={() => confirmDelete(player.id)}
+                    >
+                      <Trash2 size={16} /> Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="empty-state-mobile">
+                <p>
+                  No se encontraron jugadores que coincidan con la búsqueda.
+                </p>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Add Player Modal */}
@@ -195,47 +402,180 @@ const PlayerManagement = () => {
         onClose={() => setIsModalOpen(false)}
         title="Inscribir Nuevo Jugador"
       >
-        <form className="modal-form" onSubmit={handleAddPlayer}>
-          <div className="form-group">
-            <label>Nombre Completo</label>
-            <input
-              type="text"
-              placeholder="Ej: Lionel Messi"
-              value={newPlayer.name}
-              onChange={(e) =>
-                setNewPlayer({ ...newPlayer, name: e.target.value })
-              }
-              required
-            />
-          </div>
+        <form className="modal-form complex-form" onSubmit={handleAddPlayer}>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>
+                <Users size={14} /> Nombre Completo
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: Lionel Messi"
+                value={newPlayer.name}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, name: e.target.value })
+                }
+                required
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Posición</label>
-            <select
-              value={newPlayer.position}
-              onChange={(e) =>
-                setNewPlayer({ ...newPlayer, position: e.target.value })
-              }
-            >
-              <option value="POR">Portero (POR)</option>
-              <option value="DEF">Defensa (DEF)</option>
-              <option value="MED">Mediocampista (MED)</option>
-              <option value="DEL">Delantero (DEL)</option>
-            </select>
-          </div>
+            <div className="form-group">
+              <label>
+                <Fingerprint size={14} /> DNI / Identificación
+              </label>
+              <input
+                type="text"
+                placeholder="00000000X"
+                value={newPlayer.dni}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, dni: e.target.value })
+                }
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Estado Inicial</label>
-            <select
-              value={newPlayer.status}
-              onChange={(e) =>
-                setNewPlayer({ ...newPlayer, status: e.target.value })
-              }
-            >
-              <option value="Convocado">Convocado</option>
-              <option value="No Convocado">No Convocado</option>
-              <option value="Lesionado">Lesionado</option>
-            </select>
+            <div className="form-group">
+              <label>
+                <Calendar size={14} /> Fecha de Nacimiento
+              </label>
+              <input
+                type="date"
+                value={newPlayer.birth_date}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, birth_date: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Flag size={14} /> Nacionalidad
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: Argentina"
+                value={newPlayer.nationality}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, nationality: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Layers size={14} /> Posición
+              </label>
+              <select
+                value={newPlayer.position}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, position: e.target.value })
+                }
+              >
+                <option value="POR">Portero (POR)</option>
+                <option value="DEF">Defensa (DEF)</option>
+                <option value="MED">Mediocampista (MED)</option>
+                <option value="DEL">Delantero (DEL)</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Hash size={14} /> Dorsal
+              </label>
+              <input
+                type="number"
+                placeholder="10"
+                value={newPlayer.jersey_number}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, jersey_number: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Ruler size={14} /> Altura (cm)
+              </label>
+              <input
+                type="number"
+                placeholder="170"
+                value={newPlayer.height}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, height: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Weight size={14} /> Peso (kg)
+              </label>
+              <input
+                type="number"
+                placeholder="70"
+                value={newPlayer.weight}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, weight: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Footprints size={14} /> Pie Preferido
+              </label>
+              <select
+                value={newPlayer.preferred_foot}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, preferred_foot: e.target.value })
+                }
+              >
+                <option value="Derecho">Derecho</option>
+                <option value="Izquierdo">Izquierdo</option>
+                <option value="Ambidiestro">Ambidiestro</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <ShieldCheck size={14} /> Categoría
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: Primer Equipo"
+                value={newPlayer.category}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, category: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Phone size={14} /> Teléfono
+              </label>
+              <input
+                type="tel"
+                placeholder="+34 000 000 000"
+                value={newPlayer.phone}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, phone: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>
+                <Mail size={14} /> Email
+              </label>
+              <input
+                type="email"
+                placeholder="jugador@ejemplo.com"
+                value={newPlayer.email}
+                onChange={(e) =>
+                  setNewPlayer({ ...newPlayer, email: e.target.value })
+                }
+              />
+            </div>
           </div>
 
           <div
@@ -262,6 +602,44 @@ const PlayerManagement = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Confirmar Eliminación"
+      >
+        <div style={{ padding: "10px 0" }}>
+          <p style={{ color: "var(--text)", marginBottom: "20px" }}>
+            ¿Estás seguro de que deseas eliminar permanentemente a este jugador?
+            Esta acción no se puede deshacer.
+          </p>
+          <div
+            className="modal-footer"
+            style={{ borderTop: "none", padding: "0" }}
+          >
+            <button
+              className="glow-btn"
+              style={{ background: "rgba(255,255,255,0.05)", flex: 1 }}
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              className="glow-btn"
+              style={{
+                background: "rgba(239, 68, 68, 0.2)",
+                color: "#f87171",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                flex: 1,
+              }}
+              onClick={handleDeletePlayer}
+            >
+              Eliminar Definitivamente
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

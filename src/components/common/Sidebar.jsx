@@ -10,12 +10,21 @@ import {
   LogOut,
   BrainCircuit,
   Zap,
+  Settings as SettingsIcon,
+  ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
+  const [settings, setSettings] = React.useState(null);
+
+  React.useEffect(() => {
+    fetch("http://localhost:5000/api/settings")
+      .then((res) => res.json())
+      .then((data) => setSettings(data));
+  }, []);
 
   const menuItems = [
     { name: "Cuerpo Técnico", icon: Users, path: "/coaching", roles: ["DT"] },
@@ -45,15 +54,21 @@ const Sidebar = ({ isOpen, onClose }) => {
       roles: ["Jugador"],
     },
     {
-      name: "Administración",
-      icon: CreditCard,
-      path: "/finance",
+      name: "Inteligencia Rival",
+      icon: ShieldAlert,
+      path: "/opponent-scouting",
       roles: ["DT"],
     },
     {
       name: "Scouting y Mercado",
       icon: Search,
       path: "/scouting",
+      roles: ["DT"],
+    },
+    {
+      name: "Configuración",
+      icon: SettingsIcon,
+      path: "/settings",
       roles: ["DT"],
     },
   ];
@@ -65,8 +80,15 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
-        <div className="logo-box">S</div>
-        <h2>SportDir</h2>
+        <div
+          className="logo-box"
+          style={{
+            backgroundColor: settings?.primary_color || "var(--primary)",
+          }}
+        >
+          {settings?.team_short_name?.charAt(0) || "S"}
+        </div>
+        <h2>{settings?.team_short_name || "SportDir"}</h2>
         <button className="close-sidebar-btn" onClick={onClose}>
           <LogOut size={20} />
         </button>

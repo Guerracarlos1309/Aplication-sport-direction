@@ -8,6 +8,7 @@ const TrainingSession = sequelize.define(
     title: { type: DataTypes.STRING(255), allowNull: false },
     type: { type: DataTypes.STRING(50), allowNull: false },
     description: { type: DataTypes.TEXT },
+    location: { type: DataTypes.STRING, defaultValue: "Campo 1" },
     date: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
   { tableName: "training_sessions", timestamps: false },

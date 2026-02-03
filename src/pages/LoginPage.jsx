@@ -8,7 +8,15 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState(null);
   const { login } = useAuth();
+  const API_BASE = "http://localhost:5000/api";
+
+  React.useEffect(() => {
+    fetch(`${API_BASE}/settings`)
+      .then((res) => res.json())
+      .then((data) => setSettings(data));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +35,15 @@ const LoginPage = () => {
     <div className="login-container">
       <div className="login-card glass-panel">
         <div className="login-header">
-          <div className="logo-placeholder">A</div>
-          <h2>Sport Direction</h2>
+          <div
+            className="logo-placeholder"
+            style={{
+              backgroundColor: settings?.primary_color || "var(--primary)",
+            }}
+          >
+            {settings?.team_short_name?.charAt(0) || "A"}
+          </div>
+          <h2>{settings?.team_name || "Sport Direction"}</h2>
           <p>Gestión Deportiva de Alto Rendimiento</p>
         </div>
 

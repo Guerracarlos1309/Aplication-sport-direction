@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 const MatchAnalysis = () => {
+  const API_BASE = "http://localhost:5000/api";
   const [matchData, setMatchData] = useState({
     opponent: "United FC",
     score: "2 - 1",
@@ -14,9 +15,18 @@ const MatchAnalysis = () => {
     ],
   });
 
-  // Future: Fetch from /api/matches/latest
   useEffect(() => {
-    // For now we keep the "real-looking" data in state to allow future editing
+    fetch(`${API_BASE}/matches/latest`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.analysis_points) {
+          data.points = data.analysis_points.split(",");
+        } else {
+          data.points = [];
+        }
+        setMatchData(data);
+      })
+      .catch((err) => console.error("Error fetching match data:", err));
   }, []);
 
   return (

@@ -27,7 +27,18 @@ CREATE TABLE players (
     medical_status VARCHAR(255) DEFAULT 'Apto',
     prognosis VARCHAR(100) DEFAULT '-',
     last_review DATE,
-    callup_acknowledged BOOLEAN DEFAULT FALSE
+    callup_acknowledged BOOLEAN DEFAULT FALSE,
+    dni VARCHAR(20),
+    birth_date DATE,
+    nationality VARCHAR(100),
+    height DECIMAL(5, 2),
+    weight DECIMAL(5, 2),
+    preferred_foot VARCHAR(20),
+    jersey_number INTEGER,
+    category VARCHAR(50),
+    phone VARCHAR(50),
+    email VARCHAR(150),
+    active BOOLEAN DEFAULT TRUE
 );
 
 -- Users Table

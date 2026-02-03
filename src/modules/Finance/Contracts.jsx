@@ -1,41 +1,45 @@
 import React from "react";
 
 const Contracts = () => {
-  const contracts = [
-    {
-      name: "Carlos Ruiz",
-      type: "Jugador (Pro)",
-      start: "2024",
-      end: "2027",
-      value: "€2.5M",
-    },
-    {
-      name: "Juan Delgado",
-      type: "Entrenador",
-      start: "2025",
-      end: "2026",
-      value: "€1.2M",
-    },
-    {
-      name: "L. Modric",
-      type: "Jugador (Pro)",
-      start: "2023",
-      end: "2025",
-      value: "€4.0M",
-    },
-  ];
+  const [contracts, setContracts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch("http://localhost:5000/api/contracts")
+      .then((res) => res.json())
+      .then((data) => {
+        setContracts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching contracts:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const totalBill = contracts.reduce(
+    (acc, curr) => acc + parseFloat(curr.annual_value),
+    0,
+  );
+  const expiringCount = contracts.filter(
+    (c) =>
+      new Date(c.end_date) <
+      new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+  ).length;
 
   return (
     <div className="contracts-view">
       <div className="finance-stats">
         <div className="glass-panel stat-card-small">
           <span className="label">Total Masa Salarial</span>
-          <span className="value">€12.4M / año</span>
+          <span className="value">
+            €{(totalBill / 1000000).toFixed(1)}M / año
+          </span>
         </div>
         <div className="glass-panel stat-card-small">
           <span className="label">Contratos por Renovar</span>
           <span className="value" style={{ color: "#ff007a" }}>
-            4
+            {expiringCount}
           </span>
         </div>
         <div className="glass-panel stat-card-small">
@@ -44,7 +48,9 @@ const Contracts = () => {
         </div>
         <div className="glass-panel stat-card-small">
           <span className="label">Valor de Plantilla</span>
-          <span className="value">€64.8M</span>
+          <span className="value">
+            €{((totalBill * 5) / 1000000).toFixed(1)}M
+          </span>
         </div>
       </div>
 
@@ -62,15 +68,23 @@ const Contracts = () => {
               </tr>
             </thead>
             <tbody>
-              {contracts.map((c, i) => (
-                <tr key={i}>
-                  <td>{c.name}</td>
-                  <td>{c.type}</td>
-                  <td>{c.start}</td>
-                  <td>{c.end}</td>
-                  <td>{c.value}</td>
+              {loading ? (
+                <tr>
+                  <td colSpan="5">Cargando contratos...</td>
                 </tr>
-              ))}
+              ) : (
+                contracts.map((c, i) => (
+                  <tr key={i}>
+                    <td>{c.name}</td>
+                    <td>{c.type}</td>
+                    <td>{new Date(c.start_date).getFullYear()}</td>
+                    <td>{new Date(c.end_date).toLocaleDateString()}</td>
+                    <td>
+                      €{(parseFloat(c.annual_value) / 1000000).toFixed(1)}M
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

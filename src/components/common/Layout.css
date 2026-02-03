@@ -202,6 +202,10 @@
   background: rgba(0, 255, 120, 0.1);
   color: #00ff78;
 }
+.notif-icon.danger {
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+}
 
 .notif-content {
   flex-grow: 1;
@@ -266,7 +270,7 @@
 
   .header-search input {
     width: 100%;
-    max-width: 250px;
+    max-width: 200px;
   }
 
   .page-body {
@@ -283,11 +287,16 @@
     display: none; /* Hide search on very small mobile for now, or make it a button */
   }
 
-  .page-header {
-    height: 70px;
-  }
-
   .page-body {
     padding: 16px;
+  }
+
+  .page-header {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .header-actions {
+    gap: 8px;
   }
 }
