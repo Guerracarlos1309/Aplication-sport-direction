@@ -12,7 +12,11 @@ import HealthDashboard from "./modules/Health/HealthDashboard";
 import FinanceDashboard from "./modules/Finance/FinanceDashboard";
 import ScoutingDashboard from "./modules/Scouting/ScoutingDashboard";
 import PlayerWellness from "./modules/Health/PlayerWellness";
+import PlayerManagement from "./modules/Admin/PlayerManagement";
+import PlayerProfile from "./modules/Player/PlayerProfile";
+import PlayerDashboard from "./modules/Player/PlayerDashboard";
 import LoginPage from "./pages/LoginPage";
+import PerformanceLab from "./modules/Performance/PerformanceLab";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -96,7 +100,33 @@ function AppRoutes() {
           path="player-home"
           element={
             <ProtectedRoute allowedRoles={["Jugador"]}>
-              <PlayerWellness />
+              <PlayerDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="player/profile"
+          element={
+            <ProtectedRoute allowedRoles={["Jugador"]}>
+              <PlayerProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="admin/players"
+          element={
+            <ProtectedRoute allowedRoles={["DT"]}>
+              <PlayerManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="performance"
+          element={
+            <ProtectedRoute allowedRoles={["DT", "Jugador"]}>
+              <PerformanceLab />
             </ProtectedRoute>
           }
         />
@@ -107,7 +137,22 @@ function AppRoutes() {
   );
 }
 
+import { useEffect } from "react";
+import api from "./api/axios";
+
 function App() {
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const response = await api.get("/");
+        console.log("Backend connection successful:", response.data);
+      } catch (error) {
+        console.error("Backend connection failed:", error);
+      }
+    };
+    checkConnection();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>

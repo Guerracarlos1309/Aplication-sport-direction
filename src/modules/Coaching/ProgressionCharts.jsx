@@ -9,15 +9,25 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { name: "Sem 1", rendimiento: 65, fisico: 70 },
-  { name: "Sem 2", rendimiento: 72, fisico: 75 },
-  { name: "Sem 3", rendimiento: 68, fisico: 74 },
-  { name: "Sem 4", rendimiento: 85, fisico: 82 },
-  { name: "Sem 5", rendimiento: 88, fisico: 85 },
-];
-
 const ProgressionCharts = () => {
+  const [progressionData, setProgressionData] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetch("http://localhost:5000/api/stats/team-progression")
+      .then((res) => res.json())
+      .then((data) => {
+        setProgressionData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching progression:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div>Cargando tendencias...</div>;
+
   return (
     <div className="progression-view">
       <div
@@ -27,7 +37,7 @@ const ProgressionCharts = () => {
         <h3>Progresión del Equipo - Rendimiento Promedio</h3>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
+            data={progressionData}
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid

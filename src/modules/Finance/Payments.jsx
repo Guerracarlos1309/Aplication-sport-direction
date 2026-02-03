@@ -59,42 +59,44 @@ const Payments = () => {
         {loading ? (
           <p>Recuperando facturas...</p>
         ) : (
-          <table className="health-table">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Importe</th>
-                <th>Estado</th>
-                <th>Fecha Vencimiento</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.concept}</td>
-                  <td>€{parseFloat(p.amount).toLocaleString()}</td>
-                  <td>
-                    <button
-                      onClick={() => toggleStatus(p.id, p.status)}
-                      className={`payment-status-tag ${p.status}`}
-                      style={{
-                        border: "none",
-                        cursor: "pointer",
-                        fontInherit: "inherit",
-                      }}
-                    >
-                      {p.status === "paid"
-                        ? "Pagado"
-                        : p.status === "pending"
-                          ? "Pendiente"
-                          : "Vencido"}
-                    </button>
-                  </td>
-                  <td>{new Date(p.due_date).toLocaleDateString()}</td>
+          <div className="table-container">
+            <table className="health-table">
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Importe</th>
+                  <th>Estado</th>
+                  <th>Fecha Vencimiento</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.concept}</td>
+                    <td>€{parseFloat(p.amount).toLocaleString()}</td>
+                    <td>
+                      <button
+                        onClick={() => toggleStatus(p.id, p.status)}
+                        className={`payment-status-tag ${p.status}`}
+                        style={{
+                          border: "none",
+                          cursor: "pointer",
+                          fontInherit: "inherit",
+                        }}
+                      >
+                        {p.status === "paid"
+                          ? "Pagado"
+                          : p.status === "pending"
+                            ? "Pendiente"
+                            : "Vencido"}
+                      </button>
+                    </td>
+                    <td>{new Date(p.due_date).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

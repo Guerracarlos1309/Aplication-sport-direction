@@ -50,28 +50,30 @@ const Contracts = () => {
 
       <div className="glass-panel card">
         <h3>Gestión de Contratos</h3>
-        <table className="health-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Vínculo</th>
-              <th>Inicio</th>
-              <th>Fin Contrato</th>
-              <th>Valor Anual</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contracts.map((c, i) => (
-              <tr key={i}>
-                <td>{c.name}</td>
-                <td>{c.type}</td>
-                <td>{c.start}</td>
-                <td>{c.end}</td>
-                <td>{c.value}</td>
+        <div className="table-container">
+          <table className="health-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Vínculo</th>
+                <th>Inicio</th>
+                <th>Fin Contrato</th>
+                <th>Valor Anual</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {contracts.map((c, i) => (
+                <tr key={i}>
+                  <td>{c.name}</td>
+                  <td>{c.type}</td>
+                  <td>{c.start}</td>
+                  <td>{c.end}</td>
+                  <td>{c.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

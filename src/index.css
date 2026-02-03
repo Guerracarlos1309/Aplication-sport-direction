@@ -10,7 +10,23 @@
   --text-muted: #a0a0b0;
   --border: rgba(255, 255, 255, 0.1);
   --glass: blur(12px);
+  --danger: #ff6b6b;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 * {
@@ -101,8 +117,19 @@ h3 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .module-view h2 {
+    font-size: 1.5rem;
+  }
 }
 
 .card {
@@ -118,4 +145,96 @@ h3 {
   transform: translateY(-5px);
   background: var(--surface-hover);
   border-color: var(--primary);
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* Global Input Styles */
+input,
+select,
+textarea {
+  font-family: inherit;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  outline: none;
+  transition: var(--transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(0, 242, 255, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
+}
+
+/* Fix for Chrome/Edge Autofill background color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #151520 inset !important;
+  -webkit-text-fill-color: var(--text) !important;
+  caret-color: var(--text);
+
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Tab Navigation Styles */
+.tab-navigation,
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap; /* responsive */
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 4px 12px rgba(0, 242, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Select Option Styling */
+option {
+  background-color: #0d0d15;
+  color: var(--text);
+  padding: 10px;
 }

@@ -1,9 +1,20 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const db = require("./db");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import dotenv from "dotenv";
+import sequelize from "./config/database.js";
+
+// Models
+import User from "./models/User.js";
+import Player from "./models/Player.js";
+import TrainingSession from "./models/TrainingSession.js";
+import Wellness from "./models/Wellness.js";
+import Payment from "./models/Payment.js";
+import Inventory from "./models/Inventory.js";
+import ScoutingObjective from "./models/ScoutingObjective.js";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,20 +25,31 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan("dev"));
 
+// Basic health check route
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
 // --- API Routes ---
 
 // 0. Auth
 app.post("/api/auth/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const result = await db.query(
-      "SELECT u.*, p.name as player_name FROM users u LEFT JOIN players p ON u.player_id = p.id WHERE u.username = $1 AND u.password = $2",
-      [username, password],
-    );
-    if (result.rows.length > 0) {
-      const user = result.rows[0];
-      delete user.password;
-      res.json(user);
+    const user = await User.findOne({
+      where: { username, password },
+      include: [{ model: Player, attributes: ["name"] }],
+    });
+
+    if (user) {
+      const userData = user.toJSON();
+      // Flatten player_name for frontend compatibility
+      if (userData.Player) {
+        userData.player_name = userData.Player.name;
+        delete userData.Player; // Clean up
+      }
+      delete userData.password;
+      res.json(userData);
     } else {
       res.status(401).json({ error: "Credenciales inválidas" });
     }
@@ -39,23 +61,19 @@ app.post("/api/auth/login", async (req, res) => {
 // 1. Coaching: Sessions
 app.get("/api/sessions", async (req, res) => {
   try {
-    const result = await db.query(
-      "SELECT * FROM training_sessions ORDER BY date DESC",
-    );
-    res.json(result.rows);
+    const sessions = await TrainingSession.findAll({
+      order: [["date", "DESC"]],
+    });
+    res.json(sessions);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/api/sessions", async (req, res) => {
-  const { title, type, description } = req.body;
   try {
-    const result = await db.query(
-      "INSERT INTO training_sessions (title, type, description) VALUES ($1, $2, $3) RETURNING *",
-      [title, type, description],
-    );
-    res.json(result.rows[0]);
+    const session = await TrainingSession.create(req.body);
+    res.json(session);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -63,33 +81,94 @@ app.post("/api/sessions", async (req, res) => {
 
 app.delete("/api/sessions/:id", async (req, res) => {
   try {
-    await db.query("DELETE FROM training_sessions WHERE id = $1", [
-      req.params.id,
-    ]);
+    await TrainingSession.destroy({ where: { id: req.params.id } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 2. Players (Call-ups & Health)
+// 2. Players (Call-ups, Health, Admin & Profile)
 app.get("/api/players", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM players ORDER BY id ASC");
-    res.json(result.rows);
+    const players = await Player.findAll({ order: [["id", "ASC"]] });
+    res.json(players);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/players", async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const player = await Player.create(req.body, { transaction: t });
+
+    // Create automatic user for the player
+    // Username is lowercased name without spaces
+    const generatedUsername = req.body.name.toLowerCase().replace(/\s+/g, "");
+
+    await User.create(
+      {
+        username: generatedUsername,
+        password: "1234", // Temporary password
+        role: "Jugador",
+        player_id: player.id,
+      },
+      { transaction: t },
+    );
+
+    await t.commit();
+    res.json(player);
+  } catch (err) {
+    await t.rollback();
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/users/change-password", async (req, res) => {
+  const { userId, newPassword } = req.body;
+  try {
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    user.password = newPassword;
+    await user.save();
+    res.json({ success: true, message: "Contraseña actualizada" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/players/:id", async (req, res) => {
+  try {
+    const player = await Player.findByPk(req.params.id);
+    if (!player)
+      return res.status(404).json({ error: "Jugador no encontrado" });
+    res.json(player);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.put("/api/players/:id", async (req, res) => {
-  const { status, medical_status, prognosis } = req.body;
   try {
-    const result = await db.query(
-      "UPDATE players SET status = COALESCE($1, status), medical_status = COALESCE($2, medical_status), prognosis = COALESCE($3, prognosis) WHERE id = $4 RETURNING *",
-      [status, medical_status, prognosis, req.params.id],
-    );
-    res.json(result.rows[0]);
+    const { status, callup_acknowledged } = req.body;
+    let updateData = { ...req.body };
+
+    // If status is being updated, reset the acknowledgement
+    if (status !== undefined) {
+      updateData.callup_acknowledged = false;
+    }
+
+    const [updated] = await Player.update(updateData, {
+      where: { id: req.params.id },
+    });
+    if (updated) {
+      const updatedPlayer = await Player.findByPk(req.params.id);
+      res.json(updatedPlayer);
+    } else {
+      res.status(404).json({ error: "Jugador no encontrado" });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -98,23 +177,21 @@ app.put("/api/players/:id", async (req, res) => {
 // 3. Finance: Payments
 app.get("/api/payments", async (req, res) => {
   try {
-    const result = await db.query(
-      "SELECT * FROM payments ORDER BY due_date ASC",
-    );
-    res.json(result.rows);
+    const payments = await Payment.findAll({ order: [["due_date", "ASC"]] });
+    res.json(payments);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.put("/api/payments/:id", async (req, res) => {
-  const { status } = req.body;
   try {
-    const result = await db.query(
-      "UPDATE payments SET status = $1 WHERE id = $2 RETURNING *",
-      [status, req.params.id],
+    await Payment.update(
+      { status: req.body.status },
+      { where: { id: req.params.id } },
     );
-    res.json(result.rows[0]);
+    const updatedPayment = await Payment.findByPk(req.params.id);
+    res.json(updatedPayment);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -123,21 +200,21 @@ app.put("/api/payments/:id", async (req, res) => {
 // 4. Finance: Inventory
 app.get("/api/inventory", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM inventory ORDER BY name ASC");
-    res.json(result.rows);
+    const items = await Inventory.findAll({ order: [["name", "ASC"]] });
+    res.json(items);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.put("/api/inventory/:id", async (req, res) => {
-  const { stock } = req.body;
   try {
-    const result = await db.query(
-      "UPDATE inventory SET stock = $1 WHERE id = $2 RETURNING *",
-      [stock, req.params.id],
+    await Inventory.update(
+      { stock: req.body.stock },
+      { where: { id: req.params.id } },
     );
-    res.json(result.rows[0]);
+    const updatedItem = await Inventory.findByPk(req.params.id);
+    res.json(updatedItem);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -146,23 +223,19 @@ app.put("/api/inventory/:id", async (req, res) => {
 // 5. Scouting
 app.get("/api/scouting/objectives", async (req, res) => {
   try {
-    const result = await db.query(
-      "SELECT * FROM scouting_objectives ORDER BY rating DESC",
-    );
-    res.json(result.rows);
+    const objectives = await ScoutingObjective.findAll({
+      order: [["rating", "DESC"]],
+    });
+    res.json(objectives);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/api/scouting/objectives", async (req, res) => {
-  const { name, rating, position } = req.body;
   try {
-    const result = await db.query(
-      "INSERT INTO scouting_objectives (name, rating, position) VALUES ($1, $2, $3) RETURNING *",
-      [name, rating, position],
-    );
-    res.json(result.rows[0]);
+    const objective = await ScoutingObjective.create(req.body);
+    res.json(objective);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -170,9 +243,7 @@ app.post("/api/scouting/objectives", async (req, res) => {
 
 app.delete("/api/scouting/objectives/:id", async (req, res) => {
   try {
-    await db.query("DELETE FROM scouting_objectives WHERE id = $1", [
-      req.params.id,
-    ]);
+    await ScoutingObjective.destroy({ where: { id: req.params.id } });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -182,47 +253,149 @@ app.delete("/api/scouting/objectives/:id", async (req, res) => {
 // 6. Wellness
 app.get("/api/wellness/:player_id", async (req, res) => {
   try {
-    const result = await db.query(
-      "SELECT * FROM wellness WHERE player_id = $1 ORDER BY date DESC LIMIT 7",
-      [req.params.player_id],
-    );
-    res.json(result.rows);
+    const records = await Wellness.findAll({
+      where: { player_id: req.params.player_id },
+      order: [["date", "DESC"]],
+      limit: 7,
+    });
+    res.json(records);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post("/api/wellness", async (req, res) => {
-  const { player_id, sleep, fatigue, stress, soreness, mood } = req.body;
+  const { player_id, date, ...metrics } = req.body;
+  const entryDate = date || new Date().toISOString().split("T")[0];
+
   try {
-    const result = await db.query(
-      `INSERT INTO wellness (player_id, sleep, fatigue, stress, soreness, mood) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
-       ON CONFLICT (player_id, date) 
-       DO UPDATE SET sleep = $2, fatigue = $3, stress = $4, soreness = $5, mood = $6 
-       RETURNING *`,
-      [player_id, sleep, fatigue, stress, soreness, mood],
+    const [record] = await Wellness.upsert(
+      {
+        player_id,
+        date: entryDate,
+        ...metrics,
+      },
+      { returning: true },
     );
-    res.json(result.rows[0]);
+
+    res.json(record);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get("/api/wellness-summary", async (req, res) => {
+// 6. Statistics & Performance
+app.get("/api/stats/team-progression", async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT p.name, w.* 
-      FROM players p 
-      JOIN wellness w ON p.id = w.player_id 
-      WHERE w.date = CURRENT_DATE
-    `);
-    res.json(result.rows);
+    // Get last 4 weeks of averge wellness
+    const stats = await Wellness.findAll({
+      attributes: [
+        [
+          sequelize.fn("date_trunc", "week", sequelize.col("createdAt")),
+          "week",
+        ],
+        [sequelize.fn("AVG", sequelize.col("sleep")), "sleep"],
+        [sequelize.fn("AVG", sequelize.col("fatigue")), "fatigue"],
+        [sequelize.fn("AVG", sequelize.col("stress")), "stress"],
+        [sequelize.fn("AVG", sequelize.col("mood")), "mood"],
+      ],
+      group: [sequelize.fn("date_trunc", "week", sequelize.col("createdAt"))],
+      order: [
+        [sequelize.fn("date_trunc", "week", sequelize.col("createdAt")), "ASC"],
+      ],
+      limit: 5,
+    });
+
+    const formatted = stats.map((s, index) => ({
+      name: `Sem ${index + 1}`,
+      rendimiento: Math.round(
+        ((parseInt(s.dataValues.sleep) + parseInt(s.dataValues.mood)) / 10) *
+          100,
+      ),
+      fisico: Math.round(
+        ((parseInt(s.dataValues.fatigue) +
+          (6 - parseInt(s.dataValues.stress))) /
+          10) *
+          100,
+      ),
+    }));
+
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get("/api/performance-rankings", async (req, res) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    const wellnessRecords = await Wellness.findAll({
+      where: { date: today },
+      include: [{ model: Player, attributes: ["name"] }],
+    });
+
+    const rankings = wellnessRecords
+      .map((r) => {
+        const data = r.toJSON();
+        // Calculate a mock score based on metrics (1-10 scale originally, normalize to 100)
+        // High sleep, low fatigue, low stress, low soreness, high mood = good
+        const score = Math.round(
+          (data.sleep / 10) * 30 +
+            ((10 - data.fatigue) / 10) * 20 +
+            ((10 - data.stress) / 10) * 20 +
+            (data.mood / 10) * 30,
+        );
+
+        return {
+          id: data.player_id,
+          name: data.Player ? data.Player.name : "Unknown",
+          score: score,
+          trend: "up", // Mock trend
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    res.json(rankings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+app.get("/api/dashboard-summary", async (req, res) => {
+  try {
+    const playerCount = await Player.count();
+    const sessionCount = await TrainingSession.count();
+    const pendingPayments = await Payment.count({
+      where: { status: "pending" },
+    });
+    const scoutingCount = await ScoutingObjective.count();
+
+    res.json({
+      players: playerCount,
+      sessions: sessionCount,
+      payments: pendingPayments,
+      scouting: scoutingCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Database Connection and Server Start
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connected successfully.");
+
+    await sequelize.sync({ alter: true });
+    console.log("Models synchronized.");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+startServer();

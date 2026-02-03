@@ -138,7 +138,7 @@ const ShadowTeam = () => {
                       style={{
                         background: "none",
                         border: "none",
-                        color: "#ff6b6b",
+                        color: "var(--danger)",
                         cursor: "pointer",
                       }}
                     >

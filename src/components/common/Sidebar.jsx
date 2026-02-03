@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
+  User,
   Users,
   Activity,
   CreditCard,
@@ -8,15 +9,17 @@ import {
   ChevronRight,
   LogOut,
   BrainCircuit,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import "./Sidebar.css";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
 
   const menuItems = [
     { name: "Cuerpo Técnico", icon: Users, path: "/coaching", roles: ["DT"] },
+    { name: "Plantilla", icon: Users, path: "/admin/players", roles: ["DT"] },
     {
       name: "Salud y Rendimiento",
       icon: Activity,
@@ -24,9 +27,21 @@ const Sidebar = () => {
       roles: ["DT"],
     },
     {
-      name: "Mi Bienestar",
+      name: "Lab Rendimiento",
+      icon: Zap,
+      path: "/performance",
+      roles: ["DT", "Jugador"],
+    },
+    {
+      name: "Panel de Control",
       icon: BrainCircuit,
       path: "/player-home",
+      roles: ["Jugador"],
+    },
+    {
+      name: "Mi Perfil",
+      icon: User,
+      path: "/player/profile",
       roles: ["Jugador"],
     },
     {
@@ -48,10 +63,13 @@ const Sidebar = () => {
   );
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
         <div className="logo-box">S</div>
         <h2>SportDir</h2>
+        <button className="close-sidebar-btn" onClick={onClose}>
+          <LogOut size={20} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -60,6 +78,9 @@ const Sidebar = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+            onClick={() => {
+              if (window.innerWidth <= 1024) onClose();
+            }}
           >
             <item.icon size={20} />
             <span>{item.name}</span>

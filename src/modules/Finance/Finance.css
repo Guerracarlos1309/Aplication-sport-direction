@@ -3,6 +3,14 @@
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 40px;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .finance-module .module-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .finance-stats {
@@ -10,6 +18,18 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 32px;
+}
+
+@media (max-width: 1024px) {
+  .finance-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .finance-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 .stat-card-small {

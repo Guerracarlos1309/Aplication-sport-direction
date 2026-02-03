@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ShadowTeam from "./ShadowTeam";
 import ScoutingReports from "./ScoutingReports";
 import MarketValues from "./MarketValues";
+import TacticsBoard from "./TacticsBoard";
 import "./Scouting.css";
 
 const ScoutingDashboard = () => {
@@ -9,6 +10,7 @@ const ScoutingDashboard = () => {
 
   const tabs = [
     { id: "shadow", label: "Shadow Team", component: ShadowTeam },
+    { id: "tactics", label: "Pizarra Táctica", component: TacticsBoard },
     { id: "reports", label: "Informes de Ojeo", component: ScoutingReports },
     { id: "market", label: "Mercado", component: MarketValues },
   ];

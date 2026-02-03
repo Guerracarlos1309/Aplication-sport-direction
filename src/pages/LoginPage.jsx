@@ -17,7 +17,7 @@ const LoginPage = () => {
     try {
       await login(username, password);
     } catch (err) {
-      setError("Usuario o contraseña incorrectos");
+      setError(err.message || "Usuario o contraseña incorrectos");
     } finally {
       setLoading(false);
     }

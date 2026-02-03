@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { CheckCircle2 } from "lucide-react";
 
 const PlayerCallUp = () => {
   const [players, setPlayers] = useState([]);
@@ -93,17 +94,26 @@ const PlayerCallUp = () => {
                   </span>
                   <span>{player.name}</span>
                 </div>
-                <button
-                  className={`callup-status ${getStatusClass(player.status)}`}
-                  onClick={() => toggleStatus(player.id, player.status)}
-                  style={{
-                    cursor: "pointer",
-                    border: "none",
-                    fontInherit: "inherit",
-                  }}
+                <div
+                  style={{ display: "flex", gap: "10px", alignItems: "center" }}
                 >
-                  {player.status}
-                </button>
+                  {player.callup_acknowledged && (
+                    <div className="ack-badge" title="Acuse de Recibo">
+                      <CheckCircle2 size={16} color="#4ade80" />
+                    </div>
+                  )}
+                  <button
+                    className={`callup-status ${getStatusClass(player.status)}`}
+                    onClick={() => toggleStatus(player.id, player.status)}
+                    style={{
+                      cursor: "pointer",
+                      border: "none",
+                      fontInherit: "inherit",
+                    }}
+                  >
+                    {player.status}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

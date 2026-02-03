@@ -6,7 +6,7 @@ const MedicalRecords = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    player_id: "",
     medical_status: "",
     prognosis: "",
   });
@@ -31,12 +31,9 @@ const MedicalRecords = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const player = players.find(
-      (p) => p.name.toLowerCase() === formData.name.toLowerCase(),
-    );
-    if (player) {
+    if (formData.player_id) {
       try {
-        const res = await fetch(`${API_BASE}/players/${player.id}`, {
+        const res = await fetch(`${API_BASE}/players/${formData.player_id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -45,14 +42,18 @@ const MedicalRecords = () => {
           }),
         });
         const updated = await res.json();
-        setPlayers(players.map((p) => (p.id === player.id ? updated : p)));
+        setPlayers(
+          players.map((p) =>
+            p.id === parseInt(formData.player_id) ? updated : p,
+          ),
+        );
         setIsModalOpen(false);
-        setFormData({ name: "", medical_status: "", prognosis: "" });
+        setFormData({ player_id: "", medical_status: "", prognosis: "" });
       } catch (err) {
         console.error("Error updating medical report:", err);
       }
     } else {
-      alert("Jugador no encontrado en la base de datos.");
+      alert("Por favor selecciona un jugador.");
     }
   };
 
@@ -124,46 +125,49 @@ const MedicalRecords = () => {
         {loading ? (
           <p>Cargando datos clínicos...</p>
         ) : (
-          <table className="health-table">
-            <thead>
-              <tr>
-                <th>Jugador</th>
-                <th>Estado / Diagnóstico</th>
-                <th>Pronóstico</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {players.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.medical_status}</td>
-                  <td
-                    style={{
-                      color: p.prognosis !== "-" ? "var(--accent)" : "inherit",
-                    }}
-                  >
-                    {p.prognosis}
-                  </td>
-                  <td>
-                    {p.medical_status !== "Apto" && (
-                      <button
-                        onClick={() => clearReport(p.id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#00f2ff",
-                          cursor: "pointer",
-                        }}
-                      >
-                        Dar de Alta
-                      </button>
-                    )}
-                  </td>
+          <div className="table-container">
+            <table className="health-table">
+              <thead>
+                <tr>
+                  <th>Jugador</th>
+                  <th>Estado / Diagnóstico</th>
+                  <th>Pronóstico</th>
+                  <th>Acción</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {players.map((p) => (
+                  <tr key={p.id}>
+                    <td>{p.name}</td>
+                    <td>{p.medical_status}</td>
+                    <td
+                      style={{
+                        color:
+                          p.prognosis !== "-" ? "var(--accent)" : "inherit",
+                      }}
+                    >
+                      {p.prognosis}
+                    </td>
+                    <td>
+                      {p.medical_status !== "Apto" && (
+                        <button
+                          onClick={() => clearReport(p.id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "var(--primary)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          Dar de Alta
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -176,15 +180,15 @@ const MedicalRecords = () => {
           <div className="form-group">
             <label>Nombre del Jugador</label>
             <select
-              value={formData.name}
+              value={formData.player_id}
               onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
+                setFormData({ ...formData, player_id: e.target.value })
               }
               required
             >
               <option value="">Selecciona un jugador...</option>
               {players.map((p) => (
-                <option key={p.id} value={p.name}>
+                <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
               ))}

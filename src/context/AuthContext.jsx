@@ -2,24 +2,6 @@ import React, { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
 
-// Usuarios "quemados" (Hardcoded) para modo demostración
-const MOCK_USERS = [
-  {
-    username: "entrenador",
-    password: "1234",
-    role: "DT",
-    player_id: null,
-    player_name: "Staff Técnico",
-  },
-  {
-    username: "carlos",
-    password: "1234",
-    role: "Jugador",
-    player_id: 1,
-    player_name: "Carlos Ruiz",
-  },
-];
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("sport_user");
@@ -27,24 +9,28 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = async (username, password) => {
-    // Simulamos una pequeña latencia para que se vea el cargando
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS.find(
-          (u) => u.username === username && u.password === password,
-        );
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
-        if (foundUser) {
-          const userData = { ...foundUser };
-          delete userData.password; // Por seguridad mockeada
-          setUser(userData);
-          localStorage.setItem("sport_user", JSON.stringify(userData));
-          resolve(userData);
-        } else {
-          reject(new Error("Credenciales inválidas"));
-        }
-      }, 800);
-    });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Credenciales inválidas");
+      }
+
+      const userData = await response.json();
+      setUser(userData);
+      localStorage.setItem("sport_user", JSON.stringify(userData));
+      return userData;
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
   };
 
   const logout = () => {

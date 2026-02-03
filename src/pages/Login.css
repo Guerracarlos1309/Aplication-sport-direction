@@ -11,7 +11,7 @@
       rgba(112, 0, 255, 0.05),
       transparent
     ),
-    var(--bg);
+    var(--background);
   position: fixed;
   top: 0;
   left: 0;
@@ -32,6 +32,7 @@
   margin: 16px 0 8px;
   background: linear-gradient(to right, #fff, var(--text-muted));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -76,8 +77,8 @@
 .input-group input {
   width: 100%;
   padding: 12px 12px 12px 40px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.08); /* Increased opacity */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Increased border visibility */
   border-radius: 12px;
   color: #fff;
   transition: all 0.3s;
@@ -86,8 +87,8 @@
 .input-group input:focus {
   outline: none;
   border-color: var(--primary);
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
 }
 
 .login-btn {

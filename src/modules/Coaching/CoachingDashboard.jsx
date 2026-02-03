@@ -3,6 +3,7 @@ import TrainingPlanner from "./TrainingPlanner";
 import MatchAnalysis from "./MatchAnalysis";
 import PlayerCallUp from "./PlayerCallUp";
 import ProgressionCharts from "./ProgressionCharts";
+import CoachingSummary from "./CoachingSummary";
 import "./Coaching.css";
 
 const CoachingDashboard = () => {
@@ -39,6 +40,8 @@ const CoachingDashboard = () => {
           ))}
         </div>
       </header>
+
+      <CoachingSummary />
 
       <div className="module-content">
         <ActiveComponent />
