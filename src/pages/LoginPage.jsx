@@ -85,11 +85,7 @@ const LoginPage = () => {
           </button>
         </form>
 
-        <div className="login-footer">
-          <p>
-            Demo: <span>entrenador / 1234</span> o <span>carlos / 1234</span>
-          </p>
-        </div>
+        <div className="login-footer"></div>
       </div>
     </div>
   );
