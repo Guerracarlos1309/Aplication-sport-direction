@@ -164,7 +164,7 @@ const PlayerManagement = () => {
         </div>
         <button
           className="glow-btn add-player-btn"
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", marginBottom: "1rem" }}
           onClick={() => setIsModalOpen(true)}
         >
           <Plus size={20} />
