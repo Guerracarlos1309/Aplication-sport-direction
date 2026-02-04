@@ -80,15 +80,25 @@ const Sidebar = ({ isOpen, onClose }) => {
   return (
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
-        <div
-          className="logo-box"
-          style={{
-            backgroundColor: settings?.primary_color || "var(--primary)",
-          }}
-        >
-          {settings?.team_short_name?.charAt(0) || "S"}
+        <div>
+          {/* Reemplazamos la inicial por la imagen */}
+          <img
+            src="/LOGO LINUX FC.png" // Cambia esto por el nombre real de tu archivo
+            alt="Logo"
+            style={{
+              width: "50%",
+              height: "50%",
+              marginLeft: "25%",
+              marginRight: "10%",
+              marginTop: "10%",
+              marginBottom: "10%",
+              borderRadius: "50%",
+              border: "2px solid var(--primary)",
+              boxShadow: "0 0 10px var(--primary)",
+            }}
+          />
         </div>
-        <h2>{settings?.team_short_name || "SportDir"}</h2>
+
         <button className="close-sidebar-btn" onClick={onClose}>
           <LogOut size={20} />
         </button>
