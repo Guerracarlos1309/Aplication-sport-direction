@@ -149,8 +149,10 @@ const seedDatabase = async () => {
     console.log("🔄 Creando usuarios...");
     const users = await User.bulkCreate([
       { username: "dt", password: "1234", role: "DT", player_id: null },
-      { username: "player", password: "1234", role: "Jugador", player_id: 1 },
-      { username: "star", password: "1234", role: "Jugador", player_id: 13 },
+      { username: "modric", password: "1234", role: "Jugador", player_id: 1 },
+      { username: "courtois", password: "1234", role: "Jugador", player_id: 2 },
+      { username: "vini", password: "1234", role: "Jugador", player_id: 3 },
+      { username: "jude", password: "1234", role: "Jugador", player_id: 12 },
     ]);
     console.log(`✅ ${users.length} usuarios creados`);
 
