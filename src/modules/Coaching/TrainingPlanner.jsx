@@ -55,6 +55,9 @@ const TrainingPlanner = () => {
     }
   };
 
+  const [showAll, setShowAll] = useState(false);
+  const displayedSessions = showAll ? sessions : sessions.slice(0, 3);
+
   return (
     <div className="coaching-grid">
       <div className="glass-panel card">
@@ -103,12 +106,39 @@ const TrainingPlanner = () => {
       </div>
 
       <div className="glass-panel card">
-        <h3>Próximas Sesiones</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <h3 style={{ margin: 0 }}>Próximas Sesiones</h3>
+          {sessions.length > 4 && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="view-all-btn"
+              style={{
+                background: "rgba(0, 242, 255, 0.1)",
+                border: "1px solid var(--accent)",
+                color: "var(--accent)",
+                padding: "4px 12px",
+                borderRadius: "20px",
+                fontSize: "0.8rem",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              {showAll ? "Ver menos" : "Ver todos"}
+            </button>
+          )}
+        </div>
         {loading ? (
           <p>Cargando sesiones...</p>
         ) : (
           <div className="player-list">
-            {sessions.map((session) => (
+            {displayedSessions.map((session) => (
               <div key={session.id} className="player-row">
                 <div>
                   <p style={{ fontWeight: "600" }}>{session.title}</p>
@@ -137,6 +167,18 @@ const TrainingPlanner = () => {
                 </div>
               </div>
             ))}
+            {!showAll && sessions.length > 4 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "10px",
+                  color: "var(--text-muted)",
+                  fontSize: "0.8rem",
+                }}
+              >
+                Mostrando 3 de {sessions.length} sesiones
+              </div>
+            )}
           </div>
         )}
       </div>

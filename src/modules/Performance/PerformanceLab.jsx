@@ -24,6 +24,7 @@ const PerformanceLab = () => {
   const [rankings, setRankings] = useState([]);
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     fetchRankings();
@@ -163,12 +164,37 @@ const PerformanceLab = () => {
 
         {/* Ranking / Gamification */}
         <div className="glass-panel ranking-card">
-          <div className="card-header">
-            <h3>Top Rendimiento Semanal</h3>
-            <Trophy size={18} color="#fbbf24" />
+          <div
+            className="card-header"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <h3 style={{ margin: 0 }}>Top Rendimiento Semanal</h3>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {rankings.length > 3 && (
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  style={{
+                    background: "rgba(0, 242, 255, 0.1)",
+                    border: "1px solid var(--accent)",
+                    color: "var(--accent)",
+                    padding: "2px 8px",
+                    borderRadius: "12px",
+                    fontSize: "0.7rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  {showAll ? "Ver menos" : "Ver todos"}
+                </button>
+              )}
+              <Trophy size={18} color="#fbbf24" />
+            </div>
           </div>
           <div className="ranking-list">
-            {rankings.map((player, idx) => (
+            {(showAll ? rankings : rankings.slice(0, 3)).map((player, idx) => (
               <div key={player.id} className="ranking-item">
                 <span className="rank-pos">#{idx + 1}</span>
                 <span className="rank-name">{player.name}</span>
@@ -181,6 +207,18 @@ const PerformanceLab = () => {
                 </div>
               </div>
             ))}
+            {!showAll && rankings.length > 3 && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "10px",
+                  color: "var(--text-muted)",
+                  fontSize: "0.7rem",
+                }}
+              >
+                Mostrando 3 de {rankings.length} jugadores
+              </div>
+            )}
           </div>
         </div>
       </div>

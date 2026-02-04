@@ -146,9 +146,15 @@ const PlayerManagement = () => {
     }
   };
 
+  const [showAll, setShowAll] = useState(false);
+
   const filteredPlayers = players.filter((player) =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const displayedPlayers = showAll
+    ? filteredPlayers
+    : filteredPlayers.slice(0, 10);
 
   return (
     <div className="player-management animate-fade-in">
@@ -172,7 +178,7 @@ const PlayerManagement = () => {
         </button>
       </header>
 
-      <div className="search-bar glass-panel" style={{ marginBottom: "2rem" }}>
+      <div className="search-bar glass-panel" style={{ marginBottom: "1rem" }}>
         <Search size={20} className="search-icon" />
         <input
           type="text"
@@ -180,6 +186,36 @@ const PlayerManagement = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "2rem",
+        }}
+      >
+        {filteredPlayers.length > 4 && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="view-all-btn"
+            style={{
+              background: "rgba(0, 242, 255, 0.1)",
+              border: "1px solid var(--accent)",
+              color: "var(--accent)",
+              padding: "6px 16px",
+              borderRadius: "20px",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            {showAll ? "Ver menos" : `Ver todos (${filteredPlayers.length})`}
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -202,8 +238,8 @@ const PlayerManagement = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredPlayers.length > 0 ? (
-                  filteredPlayers.map((player) => (
+                {displayedPlayers.length > 0 ? (
+                  displayedPlayers.map((player) => (
                     <tr
                       key={player.id}
                       className={!player.active ? "row-inactive" : ""}
@@ -309,8 +345,8 @@ const PlayerManagement = () => {
 
           {/* Mobile Card View */}
           <div className="mobile-cards show-mobile">
-            {filteredPlayers.length > 0 ? (
-              filteredPlayers.map((player) => (
+            {displayedPlayers.length > 0 ? (
+              displayedPlayers.map((player) => (
                 <div
                   key={player.id}
                   className={`player-card-mobile glass-panel ${!player.active ? "row-inactive" : ""}`}

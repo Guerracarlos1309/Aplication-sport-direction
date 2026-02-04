@@ -10,6 +10,7 @@ const ShadowTeam = () => {
     rating: "",
     position: "DC",
   });
+  const [showAll, setShowAll] = useState(false);
 
   const API_BASE = "http://localhost:5000/api";
 
@@ -98,22 +99,39 @@ const ShadowTeam = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "16px",
+              marginBottom: "1rem",
             }}
           >
-            <h4>Planificación: Shadow Team</h4>
+            <h4 style={{ margin: 0 }}>Planificación: Shadow Team</h4>
+            {objectives.length > 4 && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="view-all-btn"
+                style={{
+                  background: "rgba(0, 242, 255, 0.1)",
+                  border: "1px solid var(--accent)",
+                  color: "var(--accent)",
+                  padding: "2px 8px",
+                  borderRadius: "12px",
+                  fontSize: "0.7rem",
+                  cursor: "pointer",
+                }}
+              >
+                {showAll ? "Ver menos" : "Ver todos"}
+              </button>
+            )}
           </div>
           {loading ? (
             <p>Conectando con Scouting...</p>
           ) : (
             <div
               className="player-list"
-              style={{ overflowY: "auto", maxHeight: "300px" }}
+              style={showAll ? { overflowY: "auto", maxHeight: "300px" } : {}}
             >
-              {objectives.map((obj) => (
+              {(showAll ? objectives : objectives.slice(0, 4)).map((obj) => (
                 <div key={obj.id} className="player-row">
                   <div>
-                    <span style={{ block: "block", fontSize: "0.9rem" }}>
+                    <span style={{ display: "block", fontSize: "0.9rem" }}>
                       {obj.name}
                     </span>
                     <span

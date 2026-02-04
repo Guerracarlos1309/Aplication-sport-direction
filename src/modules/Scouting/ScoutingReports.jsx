@@ -4,6 +4,7 @@ const ScoutingReports = () => {
   const [filter, setFilter] = useState("");
   const [allReports, setAllReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   const API_BASE = "http://localhost:5000/api";
 
@@ -56,38 +57,68 @@ const ScoutingReports = () => {
         />
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "1.5rem",
+        }}
+      >
+        {filteredReports.length > 4 && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="view-all-btn"
+            style={{
+              background: "rgba(0, 242, 255, 0.1)",
+              border: "1px solid var(--accent)",
+              color: "var(--accent)",
+              padding: "6px 16px",
+              borderRadius: "20px",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+            }}
+          >
+            {showAll ? "Ver menos" : `Ver todos (${filteredReports.length})`}
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <p style={{ textAlign: "center" }}>Cargando reportes...</p>
       ) : (
         <div className="grid">
-          {filteredReports.map((r) => (
-            <div key={r.id} className="glass-panel scouting-card card">
-              <div className="player-photo-placeholder">👤</div>
-              <div style={{ flexGrow: 1 }}>
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <h4>{r.name}</h4>
-                  <span className="score-badge">{r.rating}</span>
-                </div>
-                <p style={{ fontSize: "0.8rem", margin: "4px 0" }}>
-                  {r.position} | {r.age} años | {r.club}
-                </p>
-                <div style={{ display: "flex", gap: "4px", marginTop: "8px" }}>
-                  {r.strengths &&
-                    r.strengths.slice(0, 2).map((strength, idx) => (
-                      <span
-                        key={idx}
-                        className="payment-status-tag paid"
-                        style={{ fontSize: "0.6rem" }}
-                      >
-                        {strength}
-                      </span>
-                    ))}
+          {(showAll ? filteredReports : filteredReports.slice(0, 4)).map(
+            (r) => (
+              <div key={r.id} className="glass-panel scouting-card card">
+                <div className="player-photo-placeholder">👤</div>
+                <div style={{ flexGrow: 1 }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <h4>{r.name}</h4>
+                    <span className="score-badge">{r.rating}</span>
+                  </div>
+                  <p style={{ fontSize: "0.8rem", margin: "4px 0" }}>
+                    {r.position} | {r.age} años | {r.club}
+                  </p>
+                  <div
+                    style={{ display: "flex", gap: "4px", marginTop: "8px" }}
+                  >
+                    {r.strengths &&
+                      r.strengths.slice(0, 2).map((strength, idx) => (
+                        <span
+                          key={idx}
+                          className="payment-status-tag paid"
+                          style={{ fontSize: "0.6rem" }}
+                        >
+                          {strength}
+                        </span>
+                      ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ),
+          )}
           {filteredReports.length === 0 && (
             <p
               style={{

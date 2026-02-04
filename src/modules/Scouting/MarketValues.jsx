@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 const MarketValues = () => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   const API_BASE = "http://localhost:5000/api";
 
@@ -25,7 +26,35 @@ const MarketValues = () => {
   return (
     <div className="market-values">
       <div className="glass-panel card">
-        <h3>Valoración de Mercado Interna vs Externa</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <h3 style={{ margin: 0 }}>
+            Valoración de Mercado Interna vs Externa
+          </h3>
+          {players.length > 4 && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="view-all-btn"
+              style={{
+                background: "rgba(0, 242, 255, 0.1)",
+                border: "1px solid var(--accent)",
+                color: "var(--accent)",
+                padding: "4px 12px",
+                borderRadius: "20px",
+                fontSize: "0.8rem",
+                cursor: "pointer",
+              }}
+            >
+              {showAll ? "Ver menos" : `Ver todos (${players.length})`}
+            </button>
+          )}
+        </div>
         {loading ? (
           <p style={{ textAlign: "center" }}>Cargando valoraciones...</p>
         ) : (
@@ -39,7 +68,7 @@ const MarketValues = () => {
               </tr>
             </thead>
             <tbody>
-              {players.map((p) => (
+              {(showAll ? players : players.slice(0, 4)).map((p) => (
                 <tr key={p.id}>
                   <td>{p.Player ? p.Player.name : "Unknown"}</td>
                   <td>{p.internal_value}</td>
