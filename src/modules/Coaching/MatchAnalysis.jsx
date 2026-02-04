@@ -29,11 +29,35 @@ const MatchAnalysis = () => {
       .catch((err) => console.error("Error fetching match data:", err));
   }, []);
 
+  const [settings, setSettings] = useState({
+    team_name: "",
+    team_short_name: "",
+    logo_url: "",
+    primary_color: "#00f2ff",
+    current_season: "",
+  });
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/settings`);
+      const data = await res.json();
+      setSettings(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
   return (
     <div className="match-analysis">
       <div className="glass-panel card" style={{ marginBottom: "24px" }}>
         <h3>
-          Resumen del Último Partido: Sport FC {matchData.score}{" "}
+          Resumen del Último Partido: {settings.team_name} {matchData.score}{" "}
           {matchData.opponent}
         </h3>
         <div className="match-stats">

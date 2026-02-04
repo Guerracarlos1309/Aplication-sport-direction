@@ -102,9 +102,6 @@ const ShadowTeam = () => {
             }}
           >
             <h4>Planificación: Shadow Team</h4>
-            <span style={{ fontSize: "0.7rem", color: "var(--accent)" }}>
-              SQL Sync
-            </span>
           </div>
           {loading ? (
             <p>Conectando con Scouting...</p>
