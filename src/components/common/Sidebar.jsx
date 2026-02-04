@@ -81,13 +81,12 @@ const Sidebar = ({ isOpen, onClose }) => {
     <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-header">
         <div>
-          {/* Reemplazamos la inicial por la imagen */}
           <img
-            src="/LOGO LINUX FC.png" // Cambia esto por el nombre real de tu archivo
+            src="/LOGO LINUX FC.png"
             alt="Logo"
             style={{
-              width: "50%",
-              height: "50%",
+              width: "40%",
+              height: "40%",
               marginLeft: "25%",
               marginRight: "10%",
               marginTop: "10%",
@@ -133,7 +132,12 @@ const Sidebar = ({ isOpen, onClose }) => {
             <span className="user-role">{user?.role}</span>
           </div>
         </div>
-        <button className="logout-btn" onClick={logout} title="Cerrar Sesión">
+        <button
+          className="logout-btn"
+          onClick={logout}
+          title="Cerrar Sesión"
+          style={{ marginBottom: "1rem" }}
+        >
           <LogOut size={20} />
         </button>
       </div>

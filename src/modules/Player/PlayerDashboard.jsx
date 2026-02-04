@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Zap,
   Dumbbell,
+  Settings,
 } from "lucide-react";
 import PlayerWellness from "../Health/PlayerWellness";
 import "./PlayerDashboard.css";
@@ -34,6 +35,7 @@ const PlayerDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchSettings();
   }, [user]);
 
   const fetchDashboardData = async () => {
@@ -94,6 +96,26 @@ const PlayerDashboard = () => {
     }
   };
 
+  const [settings, setSettings] = useState({
+    team_name: "",
+    team_short_name: "",
+    logo_url: "",
+    primary_color: "#00f2ff",
+    current_season: "",
+  });
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/settings`);
+      const data = await res.json();
+      setSettings(data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="player-dashboard animate-fade-in">
       <header className="dashboard-welcome">
@@ -136,12 +158,11 @@ const PlayerDashboard = () => {
             <div className="match-tag">Próximo Encuentro</div>
             <div className="match-teams">
               <div className="team">
-                <div className="team-logo">SD</div>
-                <span>Sport Direction</span>
+                <div className="team-logo">{settings.team_short_name}</div>
+                <span>{settings.team_name}</span>
               </div>
               <div className="vs">VS</div>
               <div className="team">
-                <div className="team-logo opponent">RM</div>
                 <span>{nextMatch.opponent}</span>
               </div>
             </div>
